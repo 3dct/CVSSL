@@ -1,0 +1,11 @@
+defaults:
+  - _self_
+  - model: ???
+  - data: ???
+  - trainer: default
+  - experiment: ???
+  - hydra: default
+
+mode: eval
+ckpt_path: ??? # User must override this
+data_split: "test" # one of: test or val

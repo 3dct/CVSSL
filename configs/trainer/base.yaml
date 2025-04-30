@@ -1,0 +1,21 @@
+accelerator: auto
+default_root_dir: ${hydra:runtime.output_dir}
+logger:
+  _target_: lightning.pytorch.loggers.TensorBoardLogger
+  save_dir: "${trainer.default_root_dir}/logs/"
+callbacks:
+  early_stopping:
+    _target_: lightning.pytorch.callbacks.EarlyStopping
+    monitor: "val_loss"
+    mode: "min"
+    patience: 10
+    verbose: true
+  model_checkpoint:
+    _target_: lightning.pytorch.callbacks.ModelCheckpoint
+    dirpath: "${trainer.default_root_dir}/checkpoints"
+    filename: "best-checkpoint"
+    monitor: "val_loss"
+    mode: "min"
+    save_top_k: 1
+    verbose: true
+    save_last: true

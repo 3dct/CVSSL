@@ -1,0 +1,10 @@
+defaults:
+  - _self_
+  - model: example_model
+  - data: example_data
+  - trainer: default
+  - experiment: example_experiment
+  - params_search: null
+  - hydra: default
+
+mode: train

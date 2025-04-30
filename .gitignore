@@ -1,0 +1,11 @@
+volume/*
+outputs/*
+Cache/*
+runs/*
+
+*.nii.gz
+*.raw
+*.mhd
+*.stl
+*cache*
+

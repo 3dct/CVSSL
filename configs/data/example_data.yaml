@@ -1,0 +1,4 @@
+_target_: data.example_data.lightning_datamodule.ExampleDataModule
+batch_size: 32
+num_workers: 4
+path: "/mnt/DATA/**/*.nii.gz"
