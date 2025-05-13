@@ -69,16 +69,17 @@ class ExampleLightningModel(LightningModule):
             num_heads = (3, 6, 12, 24, 48),
             use_v2=True
         )
-        if optimizer == None:
+        if optimizer != None:
             self.optimizer = optimizer
         else:
             self.optimizer = torch.optim.Adam
 
 
-        if loss_fn == None:
-            self.loss_fn = loss_fn
+        if loss_fn != None:
+            self.loss_fn = loss_fn()
         else:
             self.loss_fn = monai.losses.ContrastiveLoss(temperature=0.1, batch_size=-1)
+
         self.scheduler = scheduler
 
         self.train_transform_randCrop = Compose([RandZoom(prob=0.8,min_zoom=0.5,max_zoom=1.25),RandAxisFlip(prob=0.5),RandRotate(range_x=1.0, range_y=1.0, range_z=1.0, prob = 1.0)])

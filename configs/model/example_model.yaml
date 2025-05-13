@@ -5,7 +5,9 @@ optimizer:
   _partial_: true
   lr: 0.001
 loss_fn:
-  _target_: torch.nn.functional.cross_entropy
+  _target_: monai.losses.ContrastiveLoss
+  temperature: 0.1 
+  batch_size: -1
   _partial_: true
 scheduler:
   _target_: torch.optim.lr_scheduler.StepLR

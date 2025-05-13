@@ -21,7 +21,7 @@ data:
 
 # Lightning Trainer parameters
 trainer:
-  max_epochs: 100
+  max_epochs: 250
   precision: 32
   check_val_every_n_epoch: 4 
   callbacks:
