@@ -82,7 +82,11 @@ class ExampleLightningModel(LightningModule):
 
         self.scheduler = scheduler
 
-        self.train_transform_randCrop = Compose([RandZoom(prob=0.8,min_zoom=0.5,max_zoom=1.25),RandAxisFlip(prob=0.5),RandRotate(range_x=1.0, range_y=1.0, range_z=1.0, prob = 1.0)])
+        self.setupTransform()
+
+    def setupTransform(self):
+        self.is_transform_cuda = False
+        self.train_transform_randCrop = Compose([ToDevice( self.device), RandAxisFlip(prob=0.5),RandRotate(range_x=1.0, range_y=1.0, range_z=1.0, prob = 1.0),RandCoarseDropout(1024,16)]) #RandZoom(prob=0.8,min_zoom=0.5,max_zoom=1.25),
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Perform a forward pass.
@@ -93,9 +97,17 @@ class ExampleLightningModel(LightningModule):
         Returns:
             torch.Tensor: Output logits.
         """
+
+        #move transform to gpu
+        if(self.device.type == 'cuda' and not  self.is_transform_cuda ):
+            self.setupTransform()
+            self.is_transform_cuda = True
+
         y = []
         for image in range(x.shape[0]):
             y.append( self.train_transform_randCrop(x[image]))
+
+        #x= self.train_transform_randCrop(x)
         x = torch.stack(y, dim=0)
         return self.model(x)
 
@@ -120,7 +132,7 @@ class ExampleLightningModel(LightningModule):
         outputs2 = outputs2.flatten(start_dim=1, end_dim=4)
         loss =  self.loss_fn(outputs1,outputs2)
 
-        self.log("train_loss", loss, prog_bar=True)
+        self.log("train_loss", loss, prog_bar=True,  sync_dist=True)
         return loss
 
     def validation_step(self, batch: dict, _: int) -> torch.Tensor:
@@ -142,7 +154,7 @@ class ExampleLightningModel(LightningModule):
         outputs1 = outputs1.flatten(start_dim=1, end_dim=4)
         outputs2 = outputs2.flatten(start_dim=1, end_dim=4)
         loss =  self.loss_fn(outputs1,outputs2)
-        self.log("val_loss", loss, prog_bar=True)
+        self.log("val_loss", loss, prog_bar=True,  sync_dist=True)
         return loss
 
     def test_step(self, batch: dict, _: int) -> torch.Tensor:
@@ -164,7 +176,7 @@ class ExampleLightningModel(LightningModule):
         outputs1 = outputs1.flatten(start_dim=1, end_dim=4)
         outputs2 = outputs2.flatten(start_dim=1, end_dim=4)
         loss =  self.loss_fn(outputs1,outputs2)
-        self.log("test_loss", loss, prog_bar=True)
+        self.log("test_loss", loss, prog_bar=True,  sync_dist=True)
         return loss
 
     def predict_step(self, batch: dict, _: int) -> torch.Tensor:

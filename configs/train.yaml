@@ -3,7 +3,7 @@ defaults:
   - model: example_model
   - data: example_data
   - trainer: default
-  - experiment: example_experiment
+  - experiment: experiment_slurm
   - params_search: null
   - hydra: default
 

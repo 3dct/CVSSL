@@ -12,6 +12,8 @@ import torch
 
 import numpy as np
 
+from multiprocessing import Process, Manager
+
 from monai.transforms import (
     Activations,
     EnsureChannelFirst,
@@ -77,6 +79,11 @@ class ExampleDataModule(LightningDataModule):
         import glob
         import SimpleITK as sitk
         image_files_list2 = glob.glob(self.path,recursive=True)
+
+        image_files_list2.extend(image_files_list2)
+        image_files_list2.extend(image_files_list2)
+        image_files_list2.extend(image_files_list2)
+
         print(len(image_files_list2))
 
         val_frac = 0.15
@@ -89,14 +96,15 @@ class ExampleDataModule(LightningDataModule):
         val_split = int(val_frac * length) + test_split
         test_indices = indices[:test_split]
         val_indices = indices[test_split:val_split]
-        train_indices = indices[val_split:]
+        train_indices = indices #indices[val_split:]
 
-        self.train_x = [image_files_list2[i] for i in train_indices]
+        self.manager = Manager()
+        self.train_x = self.manager.list([image_files_list2[i] for i in train_indices])
 
-        self.val_x = [image_files_list2[i] for i in val_indices]
+        self.val_x = self.manager.list([image_files_list2[i] for i in val_indices])
 
         self.test_x = [image_files_list2[i] for i in test_indices]
-        self.train_transform_randCrop = Compose([RandZoom(prob=0.8,min_zoom=0.5,max_zoom=1.25),RandAxisFlip(prob=0.5),RandRotate(range_x=1.0, range_y=1.0, range_z=1.0, prob = 1.0), GaussianSmooth()])
+        self.train_transform_randCrop = Compose([RandAxisFlip(prob=0.5),RandRotate(range_x=1.0, range_y=1.0, range_z=1.0, prob = 1.0)])
 
         #self.setup_transformations()
     
@@ -104,17 +112,18 @@ class ExampleDataModule(LightningDataModule):
     def setup_transformations(self, device_instance):
         self.train_transforms = Compose(
             [
-                LoadImage(image_only=True),
+                #LoadImage(image_only=True),
                 
-                EnsureChannelFirst(),
-                ToDevice( device_instance),
-                Resize([256,256,256]),
-                #CenterSpatialCrop([256,256,256]),
+                EnsureChannelFirst(channel_dim='no_channel'),
+                #ToDevice( device_instance),
+                #Resize([256,256,256]),
+                SpatialPad([384,384,384]),
                 #SpatialPad([256,256,256]),
                 #CenterSpatialCrop([256,256,256]),
                 ScaleIntensity(),
-                RandGaussianNoise(),
-                RandCoarseDropout(1024,16)
+                #RandFlip(prob=1.0),
+                #RandGaussianNoise(),
+                #RandCoarseDropout(1024,16)
                 
             ]
         )
@@ -129,8 +138,8 @@ class ExampleDataModule(LightningDataModule):
     def train_dataloader(self) -> DataLoader:
         """Return the training data loader."""
         transform = self.setup_transformations(self.device+str(ExampleDataModule.countInstance))
-        train_ds = VolumeDataset(self.train_x, transform, self.train_transform_randCrop, True)
-        train_loader = ThreadDataLoader(train_ds, batch_size=self.batch_size, shuffle=True, pin_memory=False)
+        train_ds = VolumeDataset(self.train_x, transform, self.train_transform_randCrop)
+        train_loader = ThreadDataLoader(train_ds, batch_size=self.batch_size, shuffle=True, pin_memory=False, num_workers=8, persistent_workers=False, use_thread_workers=False, buffer_size=8, repeats=4, prefetch_factor=1)
 
         ExampleDataModule.countInstance += 1
 
@@ -141,7 +150,7 @@ class ExampleDataModule(LightningDataModule):
         """Return the validation data loader."""
         transform = self.setup_transformations(self.device+str(1))
         val_ds = VolumeDataset(self.val_x, transform, self.train_transform_randCrop)
-        val_loader = DataLoader(val_ds, batch_size=self.batch_size, shuffle=False, num_workers=0,  pin_memory=False)
+        val_loader = ThreadDataLoader(val_ds, batch_size=self.batch_size, shuffle=False, num_workers=4,  pin_memory=False)
 
         return val_loader
 

@@ -1,4 +1,5 @@
 _target_: data.example_data.lightning_datamodule.ExampleDataModule
-batch_size: 32
-num_workers: 4
-path: "/mnt/DATA/**/*.nii.gz"
+batch_size: 14
+num_workers: 16
+path: "/mnt/DATA/PW/HDF%/*.hdf5"
+

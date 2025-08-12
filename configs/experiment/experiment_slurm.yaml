@@ -4,11 +4,12 @@ defaults:
   - override /model: example_model # Override the model to use
   - override /data: example_data # Override the data module to use
   - override /trainer: base # Override or define trainer settings
+  - override /hydra/launcher: submit_slurm
 
 # Base configuration
 seed: 42
 skip_test: False
-experiment_name: "exp"
+experiment_name: "exp_slurm"
 
 # Model parameters
 model:
