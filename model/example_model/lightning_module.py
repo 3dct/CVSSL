@@ -78,7 +78,7 @@ class ExampleLightningModel(LightningModule):
         if loss_fn != None:
             self.loss_fn = loss_fn()
         else:
-            self.loss_fn = monai.losses.ContrastiveLoss(temperature=0.1, batch_size=-1)
+            self.loss_fn = monai.losses.ContrastiveLoss(temperature=0.2, batch_size=-1)
 
         self.scheduler = scheduler
 
