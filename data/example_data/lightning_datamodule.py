@@ -139,7 +139,7 @@ class ExampleDataModule(LightningDataModule):
         """Return the training data loader."""
         transform = self.setup_transformations(self.device+str(ExampleDataModule.countInstance))
         train_ds = VolumeDataset(self.train_x, transform, self.train_transform_randCrop)
-        train_loader = ThreadDataLoader(train_ds, batch_size=self.batch_size, shuffle=True, pin_memory=False, num_workers=2, persistent_workers=False, use_thread_workers=False, buffer_size=1, repeats=4, prefetch_factor=1)
+        train_loader = ThreadDataLoader(train_ds, batch_size=self.batch_size, shuffle=True, pin_memory=False, num_workers=2, persistent_workers=True, use_thread_workers=False, buffer_size=1, repeats=4, prefetch_factor=1)
 
         ExampleDataModule.countInstance += 1
 
@@ -150,7 +150,7 @@ class ExampleDataModule(LightningDataModule):
         """Return the validation data loader."""
         transform = self.setup_transformations(self.device+str(1))
         val_ds = VolumeDataset(self.val_x, transform, self.train_transform_randCrop)
-        val_loader = ThreadDataLoader(val_ds, batch_size=self.batch_size, shuffle=False, num_workers=1,  pin_memory=False)
+        val_loader = ThreadDataLoader(val_ds, batch_size=self.batch_size, shuffle=False, num_workers=1,  pin_memory=False, persistent_workers=True)
 
         return val_loader
 
