@@ -86,7 +86,7 @@ class ExampleLightningModel(LightningModule):
 
     def setupTransform(self):
         self.is_transform_cuda = False
-        self.train_transform_randCrop = Compose([ToDevice( self.device), RandAxisFlip(prob=0.5),RandRotate(range_x=1.0, range_y=1.0, range_z=1.0, prob = 1.0),RandCoarseDropout(1024,16)]) #RandZoom(prob=0.8,min_zoom=0.5,max_zoom=1.25),
+        self.train_transform_randCrop = Compose([ToDevice( self.device), RandAxisFlip(prob=0.5),RandRotate(range_x=1.0, range_y=1.0, range_z=1.0, prob = 1.0)]) #,RandCoarseDropout(1024,16), RandZoom(prob=0.8,min_zoom=0.5,max_zoom=1.25),
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Perform a forward pass.
