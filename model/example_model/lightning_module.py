@@ -69,6 +69,22 @@ class ExampleLightningModel(LightningModule):
             num_heads = (3, 6, 12, 24, 48),
             use_v2=True
         )
+
+
+        dummy_input = torch.rand(1, 1, *[384,384,384])
+        with torch.no_grad():
+            dummy_output = self.model(dummy_input)[-1]
+        
+        # The output shape of SwinTransformer with num_classes=0 is typically
+        # (batch_size, num_patches, hidden_dim).
+        # We need to flatten this for the linear layer.
+        final_feature_dim = dummy_output.shape[1] * dummy_output.shape[2] * dummy_output.shape[3] * dummy_output.shape[4]
+
+        self.classifier_head = torch.nn.Sequential(
+            torch.nn.Flatten(),
+            torch.nn.Linear(final_feature_dim, final_feature_dim*16)
+        )
+
         if optimizer != None:
             self.optimizer = optimizer
         else:
@@ -128,8 +144,11 @@ class ExampleLightningModel(LightningModule):
         outputs1 = result[-1]
         outputs2 = self.forward(inputs2)[-1]
 
-        outputs1 = outputs1.flatten(start_dim=1, end_dim=4)
-        outputs2 = outputs2.flatten(start_dim=1, end_dim=4)
+        # outputs1 = outputs1.flatten(start_dim=1, end_dim=4)
+        # outputs2 = outputs2.flatten(start_dim=1, end_dim=4)
+
+        outputs1 = self.classifier_head(outputs1)
+        outputs2 = self.classifier_head(outputs2)
         loss =  self.loss_fn(outputs1,outputs2)
 
         self.log("train_loss", loss, prog_bar=True,  sync_dist=True)
@@ -151,8 +170,12 @@ class ExampleLightningModel(LightningModule):
         outputs1 = result[-1]
         outputs2 = self.forward(inputs2)[-1]
 
-        outputs1 = outputs1.flatten(start_dim=1, end_dim=4)
-        outputs2 = outputs2.flatten(start_dim=1, end_dim=4)
+        # outputs1 = outputs1.flatten(start_dim=1, end_dim=4)
+        # outputs2 = outputs2.flatten(start_dim=1, end_dim=4)
+
+        outputs1 = self.classifier_head(outputs1)
+        outputs2 = self.classifier_head(outputs2)
+
         loss =  self.loss_fn(outputs1,outputs2)
         self.log("val_loss", loss, prog_bar=True,  sync_dist=True)
         return loss
@@ -175,6 +198,9 @@ class ExampleLightningModel(LightningModule):
 
         outputs1 = outputs1.flatten(start_dim=1, end_dim=4)
         outputs2 = outputs2.flatten(start_dim=1, end_dim=4)
+
+
+
         loss =  self.loss_fn(outputs1,outputs2)
         self.log("test_loss", loss, prog_bar=True,  sync_dist=True)
         return loss
