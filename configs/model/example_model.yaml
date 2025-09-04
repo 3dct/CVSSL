@@ -1,5 +1,7 @@
 _target_: model.example_model.lightning_module.ExampleLightningModel
 num_classes: 10
+linearLayer: True
+multiplicatorLinear: 4
 optimizer:
   _target_: torch.optim.Adam
   _partial_: true
@@ -11,6 +13,6 @@ loss_fn:
   _partial_: true
 scheduler:
   _target_: torch.optim.lr_scheduler.StepLR
-  step_size: 5
-  gamma: 0.1
+  step_size: 10
+  gamma: 0.25
   _partial_: true

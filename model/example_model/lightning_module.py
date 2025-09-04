@@ -43,6 +43,8 @@ class ExampleLightningModel(LightningModule):
     def __init__(
         self,
         num_classes: int,
+        multiplicatorLinear: int,
+        linearLayer:bool,
         optimizer: Callable,
         loss_fn: Callable | None = None,
         scheduler: Callable | None = None,
@@ -57,7 +59,7 @@ class ExampleLightningModel(LightningModule):
 
         """
         super().__init__()
-        self.model = model = SwinTransformer(
+        self.model  = SwinTransformer(
             spatial_dims=3,
             in_chans=1,
             #img_size=( 256, 256, 256),
@@ -70,6 +72,7 @@ class ExampleLightningModel(LightningModule):
             use_v2=True
         )
 
+        self.useLinearLayer = linearLayer
 
         dummy_input = torch.rand(1, 1, *[384,384,384])
         with torch.no_grad():
@@ -80,10 +83,19 @@ class ExampleLightningModel(LightningModule):
         # We need to flatten this for the linear layer.
         final_feature_dim = dummy_output.shape[1] * dummy_output.shape[2] * dummy_output.shape[3] * dummy_output.shape[4]
 
-        self.classifier_head = torch.nn.Sequential(
-            torch.nn.Flatten(),
-            torch.nn.Linear(final_feature_dim, final_feature_dim*16)
-        )
+        if self.useLinearLayer:
+
+            self.classifier_head = torch.nn.Sequential(
+                torch.nn.Flatten(),
+                torch.nn.Linear(final_feature_dim, final_feature_dim*multiplicatorLinear)
+            )
+
+        else:
+            self.classifier_head = torch.nn.Sequential(
+                torch.nn.Flatten(),
+            )
+
+        
 
         if optimizer != None:
             self.optimizer = optimizer
@@ -144,8 +156,6 @@ class ExampleLightningModel(LightningModule):
         outputs1 = result[-1]
         outputs2 = self.forward(inputs2)[-1]
 
-        # outputs1 = outputs1.flatten(start_dim=1, end_dim=4)
-        # outputs2 = outputs2.flatten(start_dim=1, end_dim=4)
 
         outputs1 = self.classifier_head(outputs1)
         outputs2 = self.classifier_head(outputs2)
