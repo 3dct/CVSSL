@@ -11,6 +11,7 @@ from omegaconf import DictConfig, OmegaConf
 from utils.logger_utils import log_message, setup_logger
 
 
+
 def train(cfg: DictConfig) -> dict:
     """Instantiates and trains a Lightning model using the provided config.
 

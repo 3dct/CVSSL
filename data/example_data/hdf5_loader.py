@@ -11,6 +11,7 @@ def load_hdf5(dir):
         first_item_name = list(f.keys())[0]
         data = f[first_item_name]
         data_train,_ = extract_random_block_3d(data,(384,384,384))
+        f.close()
 
     gc.collect()
     return data_train
@@ -73,6 +74,9 @@ def extract_random_block_3d(array_3d, block_size):
     x_end = x_start + effective_block_width
 
     # Extract the block using slicing
-    extracted_block = array_3d[z_start:z_end, y_start:y_end, x_start:x_end]
+    #extracted_block = array_3d[z_start:z_end, y_start:y_end, x_start:x_end]
+
+    extracted_block = np.zeros(block_size, dtype='int32')
+    array_3d.read_direct(extracted_block, np.s_[z_start:z_end, y_start:y_end, x_start:x_end], np.s_[0:effective_block_depth,0:effective_block_height,0:effective_block_width])
 
     return extracted_block, (z_start, y_start, x_start)

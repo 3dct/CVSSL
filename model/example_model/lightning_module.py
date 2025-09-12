@@ -36,7 +36,7 @@ from monai.transforms import (
     RandCoarseDropout
     
 )
-
+torch.set_float32_matmul_precision('medium')
 class ExampleLightningModel(LightningModule):
     """LightningModule for training, validating, and testing a classification model."""
 
